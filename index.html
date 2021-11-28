@@ -1,0 +1,167 @@
+<html>
+    <head>
+        <title>Game of Life</title>
+        <style>
+            body {
+                background-color: #606060;
+            }
+
+            #grid {
+                width: 100vh;
+                height: 100%;
+                background-color: #FFFFFF;
+                margin: auto;
+            }
+
+            td {
+                cursor: pointer;
+                border: 1px solid #FFFFFF;
+            }
+
+            td:hover {
+                border: 1px solid black;
+            }
+        </style>
+    </head>
+    <body>
+        <table id="grid">
+        </table>
+
+        <script>
+            const grid = document.getElementById('grid');
+
+            for (let i = 0; i < 32; i++) {
+                const tr = document.createElement('TR');
+                tr.className = 'row';
+                tr.id = i.toString();
+                grid.appendChild(tr);
+                for (let j = 0; j < 32; j++) {
+                    const td = document.createElement('TD');
+                    td.className = 'cell';
+                    td.id = `${i},${j}`;
+                    td.onclick = (ev) => {
+                        const elem = ev.target;
+                        if (elem.style['background-color'] === 'black') {
+                            elem.style['background-color'] = 'white';
+                        } else {
+                            elem.style['background-color'] = 'black';
+                        }
+                    };
+                    tr.appendChild(td);
+                }
+            }
+
+            let firstTick = true;
+            let RANDOM = false;
+
+            const tick = () => {
+                let matrix = [];
+
+                if (firstTick && !RANDOM) {
+                    firstTick = false;
+                    matrix = [
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                    ]
+
+                } else if (firstTick && RANDOM) {
+                    for (let i = 0; i < 32; i++) {
+                        matrix.push([]);
+                        for (let j = 0; j < 32; j++) {
+                            matrix[i].push(Math.floor(Math.random() * 2));
+                        }
+                    }
+                } else {
+                    for (let i = 0; i < 32; i++) {
+                        matrix.push([]);
+                        for (let j = 0; j < 32; j++) {
+                            const cell = document.getElementById(`${i},${j}`);
+
+                            const active = cell.style['background-color'] === 'black';
+
+                            matrix[i].push(active ? 1 : 0);
+                        }
+                    }
+                }
+
+                const newMatrix = [];
+
+                for (let i = 0; i < 32; i++) {
+                    newMatrix.push([]);
+                    for (let j = 0; j < 32; j++) {
+                        const cell = matrix[i][j];
+
+                        let up = j - 1;
+                        let down = j + 1;
+                        let left = i - 1;
+                        let right = i + 1;
+
+                        if (up === -1) up = 31;
+                        else if (down === 32) down = 0;
+
+                        if (left === -1) left = 31;
+                        else if (right === 32) right = 0;
+
+                        let count = 0;
+                        if (matrix[left][up]) count++;
+                        if (matrix[i][up]) count++;
+                        if (matrix[right][up]) count++;
+                        if (matrix[left][j]) count++;
+                        if (matrix[right][j]) count++;
+                        if (matrix[left][down]) count++;
+                        if (matrix[i][down]) count++;
+                        if (matrix[right][down]) count++;
+
+                        if (count < 2) newMatrix[i].push(0);
+                        else if (count > 3) newMatrix[i].push(0);
+                        else if (count === 3) newMatrix[i].push(1);
+                        else newMatrix[i].push(cell);
+                    }
+                }
+
+                for (let i = 0; i < 32; i++) {
+                    for (let j = 0; j < 32; j++) {
+                        const cell = document.getElementById(`${i},${j}`);
+                        if (newMatrix[i][j]) {
+                            cell.style['background-color'] = 'black';
+                        } else {
+                            cell.style['background-color'] = 'white';
+                        }
+                    }
+                }
+            }
+
+            setInterval(tick, 1000);
+        </script>
+    </body>
+</html>
