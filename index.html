@@ -6,7 +6,7 @@
                 background-color: #606060;
             }
 
-            #grid {
+            table {
                 width: 100vh;
                 height: 100%;
                 background-color: #FFFFFF;
@@ -16,98 +16,159 @@
             td {
                 cursor: pointer;
                 border: 1px solid #FFFFFF;
+                transition: background-color 0.3s ease;
             }
 
             td:hover {
                 border: 1px solid black;
             }
+
+            #nav {
+                position: absolute;
+                left: 0;
+                top: 0;
+                height: 100%;
+                width: 100px;
+            }
+
+            button {
+                margin: 1rem auto;
+                display: block;
+            }
+
+            #grid-all td {
+                border: none;
+            }
         </style>
     </head>
     <body>
-        <table id="grid">
+        <div id="nav">
+            <button onclick="updatePause()" id="pause">
+                Pause
+            </button>
+            <button onclick="random()">
+                Random
+            </button>
+            <button onclick="preload()">
+                Load
+            </button>
+            <button onclick="restart()">
+                Restart
+            </button>
+            <button onclick="startWithEmpty()">
+                Clear
+            </button>
+            <button>
+                Stack
+            </button>
+            <br/>
+
+            <button onclick="switchColor('red')">
+                Red
+            </button>
+            <button onclick="switchColor('green')">
+                Green
+            </button>
+            <button onclick="switchColor('blue')">
+                Blue
+            </button>
+            <button onclick="switchColor('all')">
+                All
+            </button>
+        </div>
+        <table id="grid-red">
+        </table>
+        <table id="grid-green" style="display: none;">
+        </table>
+        <table id="grid-blue" style="display: none;">
+        </table>
+        <table id="grid-all" style="display: none;" border="0" cellspacing="0" cellpadding="0">
+        </table>
+        <table id="grid-mini" style="display: none;">
         </table>
 
-        <script>
-            const grid = document.getElementById('grid');
 
-            for (let i = 0; i < 32; i++) {
+        <script>
+            const getColorRgb = (color) => {
+                let colorRgb = 'rgb(255, 0, 0)';
+                if (color === 'green') colorRgb = 'rgb(0, 255, 0)';
+                else if (color === 'blue') colorRgb = 'rgb(0, 0, 255)';
+                else if (color === 'red') colorRgb = 'rgb(255, 0, 0)';
+                else colorRgb = 'rgb(255, 255, 255)';
+
+                return colorRgb;
+            }
+
+            for (const color of ['red', 'green', 'blue', 'all']) {
+                const grid = document.getElementById(`grid-${color}`);
+
+                let colorRgb = getColorRgb(color);
+
+                for (let i = 0; i < 32; i++) {
+                    const tr = document.createElement('TR');
+                    tr.className = 'row';
+                    tr.id = i.toString();
+                    grid.appendChild(tr);
+                    for (let j = 0; j < 32; j++) {
+                        const td = document.createElement('TD');
+                        td.className = 'cell';
+                        td.id = `${color}-${i},${j}`;
+                        td.onclick = (ev) => {
+                            const elem = ev.target;
+                            if (elem.style['background-color'] === colorRgb) {
+                                elem.style['background-color'] = 'white';
+                            } else {
+                                elem.style['background-color'] = colorRgb;
+                            }
+                        };
+                        tr.appendChild(td);
+                    }
+                }
+            }
+
+            const grid = document.getElementById(`grid-mini`);
+            for (let i = 0; i < 8; i++) {
                 const tr = document.createElement('TR');
                 tr.className = 'row';
                 tr.id = i.toString();
                 grid.appendChild(tr);
-                for (let j = 0; j < 32; j++) {
+                for (let j = 0; j < 8; j++) {
                     const td = document.createElement('TD');
                     td.className = 'cell';
-                    td.id = `${i},${j}`;
-                    td.onclick = (ev) => {
-                        const elem = ev.target;
-                        if (elem.style['background-color'] === 'black') {
-                            elem.style['background-color'] = 'white';
-                        } else {
-                            elem.style['background-color'] = 'black';
-                        }
-                    };
+                    td.id = `mini-${i},${j}`;
                     tr.appendChild(td);
                 }
             }
 
-            let firstTick = true;
-            let RANDOM = false;
+            var FIRST_TICK = true;
+            var RANDOM = false;
+            var PAUSED = false;
+            var COLOR = 'red';
 
-            const tick = () => {
-                let matrix = [];
-
-                if (firstTick && !RANDOM) {
-                    firstTick = false;
-                    matrix = [
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                    ]
-
-                } else if (firstTick && RANDOM) {
-                    for (let i = 0; i < 32; i++) {
-                        matrix.push([]);
-                        for (let j = 0; j < 32; j++) {
-                            matrix[i].push(Math.floor(Math.random() * 2));
+            const render = (matrix, color) => {
+                if (!color) color = COLOR;
+                for (let i = 0; i < 32; i++) {
+                    for (let j = 0; j < 32; j++) {
+                        const cell = document.getElementById(`${color}-${i},${j}`);
+                        if (matrix[i][j]) {
+                            cell.style['background-color'] = getColorRgb(color);
+                        } else {
+                            cell.style['background-color'] = 'white';
                         }
                     }
-                } else {
+                }
+            }
+
+            const calcAndRender = (matrix, color) => {
+                if (!color) color = COLOR;
+                if (!matrix || !matrix.length) {
+                    matrix = [];
                     for (let i = 0; i < 32; i++) {
                         matrix.push([]);
                         for (let j = 0; j < 32; j++) {
-                            const cell = document.getElementById(`${i},${j}`);
+                            const cell = document.getElementById(`${color}-${i},${j}`);
 
-                            const active = cell.style['background-color'] === 'black';
+                            const active = cell.style['background-color'] === getColorRgb(color);
 
                             matrix[i].push(active ? 1 : 0);
                         }
@@ -149,19 +210,142 @@
                     }
                 }
 
-                for (let i = 0; i < 32; i++) {
-                    for (let j = 0; j < 32; j++) {
-                        const cell = document.getElementById(`${i},${j}`);
-                        if (newMatrix[i][j]) {
-                            cell.style['background-color'] = 'black';
-                        } else {
-                            cell.style['background-color'] = 'white';
+                render(newMatrix, color);
+
+            }
+
+            const tick = () => {
+                if (COLOR === 'all') {
+                    calcAndRender(null, 'red');
+                    calcAndRender(null, 'green');
+                    calcAndRender(null, 'blue');
+
+                    for (let i = 0; i < 32; i++) {
+                        for (let j = 0; j < 32; j++) {
+                            const red = document.getElementById(`red-${i},${j}`).style['background-color'] === getColorRgb('red') ? '255' : '0';
+                            const green = document.getElementById(`green-${i},${j}`).style['background-color'] === getColorRgb('green') ? '255' : '0';
+                            const blue = document.getElementById(`blue-${i},${j}`).style['background-color'] === getColorRgb('blue') ? '255' : '0';
+
+                            document.getElementById(`all-${i},${j}`).style['background-color'] = `rgb(${red},${green},${blue})`;
+                        }
+                    }
+                    return;
+                }
+
+                let matrix = [];
+
+                if (FIRST_TICK && !RANDOM) {
+                    FIRST_TICK = false;
+                    matrix = [
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                    ]
+
+                } else if (FIRST_TICK && RANDOM) {
+                    FIRST_TICK = false;
+                    RANDOM = false;
+                    for (let i = 0; i < 32; i++) {
+                        matrix.push([]);
+                        for (let j = 0; j < 32; j++) {
+                            matrix[i].push(Math.floor(Math.random() * 6) === 0);
                         }
                     }
                 }
+
+                calcAndRender(matrix);
+
+                switch (COLOR) {
+                    case 'red':
+                        calcAndRender(null, 'green');
+                        calcAndRender(null, 'blue');
+                        break;
+                    case 'green':
+                        calcAndRender(null, 'red');
+                        calcAndRender(null, 'blue');
+                        break;
+                    case 'blue':
+                        calcAndRender(null, 'red');
+                        calcAndRender(null, 'green');
+                }
             }
 
-            setInterval(tick, 1000);
+            let interval = setInterval(tick, 500);
+
+            var updatePause = () => {
+                if (PAUSED) {
+                    document.getElementById('pause').innerText = 'Pause';
+                    interval = setInterval(tick, 500);
+                    PAUSED = false;
+                } else {
+                    document.getElementById('pause').innerText = 'Play';
+                    clearInterval(interval);
+                    PAUSED = true;
+                }
+            }
+
+            var restart = () => {
+                FIRST_TICK = true;
+                tick();
+            }
+
+            var random = () => {
+                RANDOM = true;
+                restart();
+            }
+
+            var preload = () => {
+                RANDOM = false;
+                restart();
+            }
+
+            var startWithEmpty = () => {
+                if (!PAUSED) updatePause();
+                for (let i = 0; i < 32; i++) {
+                    for (let j = 0; j < 32; j++) {
+                        const cell = document.getElementById(`${COLOR}-${i},${j}`);
+                        cell.style['background-color'] = 'white';
+                    }
+                }
+
+                FIRST_TICK = false;
+            }
+
+            var switchColor = (color) => {
+                document.getElementById(`grid-${COLOR}`).style['display'] = 'none';
+                COLOR = color;
+                document.getElementById(`grid-${COLOR}`).style['display'] = 'table';
+            }
+
         </script>
     </body>
 </html>
