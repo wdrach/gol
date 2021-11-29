@@ -16,7 +16,7 @@
             td {
                 cursor: pointer;
                 border: 1px solid #FFFFFF;
-                transition: background-color 0.3s ease;
+                transition: background-color 0.5s ease;
             }
 
             td:hover {
@@ -58,8 +58,8 @@
             <button onclick="startWithEmpty()">
                 Clear
             </button>
-            <button>
-                Stack
+            <button onclick="minify()" id="collapse">
+                Collapse
             </button>
             <br/>
 
@@ -143,6 +143,7 @@
             var FIRST_TICK = true;
             var RANDOM = false;
             var PAUSED = false;
+            var MINI = false;
             var COLOR = 'red';
 
             const render = (matrix, color) => {
@@ -211,11 +212,47 @@
                 }
 
                 render(newMatrix, color);
+            }
 
+            const renderMini = () => {
+                for (let i = 0; i < 8; i++) {
+                    for (let j = 0; j < 8; j++) {
+                        let color = [0, 0, 0];
+                        for (let x = 0; x < 4; x++) {
+                            for (let y = 0; y < 4; y++) {
+                                const xCoord = i + (x*8);
+                                const yCoord = j + (y*8);
+
+                                const red = document.getElementById(`red-${xCoord},${yCoord}`).style['background-color'] === getColorRgb('red') ? 1 : 0;
+                                const green = document.getElementById(`green-${xCoord},${yCoord}`).style['background-color'] === getColorRgb('green') ? 1 : 0;
+                                const blue = document.getElementById(`blue-${xCoord},${yCoord}`).style['background-color'] === getColorRgb('blue') ? 1 : 0;
+
+                                switch(COLOR) {
+                                    case 'red':
+                                        color[0] += red * 256/4;
+                                        break;
+                                    case 'green':
+                                        color[1] += green * 256/4;
+                                        break;
+                                    case 'blue':
+                                        color[2] += blue * 256/4;
+                                        break;
+                                    default:
+                                        color[0] += red * 256/4;
+                                        color[1] += green * 256/4;
+                                        color[2] += blue * 256/4;
+                                        break;
+                                }
+                            }
+                        }
+
+                        document.getElementById(`mini-${i},${j}`).style['background-color'] = `rgb(${color.join(',')})`;
+                    }
+                }
             }
 
             const tick = () => {
-                if (COLOR === 'all') {
+                if (COLOR === 'all' && !MINI) {
                     calcAndRender(null, 'red');
                     calcAndRender(null, 'green');
                     calcAndRender(null, 'blue');
@@ -229,6 +266,13 @@
                             document.getElementById(`all-${i},${j}`).style['background-color'] = `rgb(${red},${green},${blue})`;
                         }
                     }
+                    return;
+                } else if (MINI) {
+                    calcAndRender(null, 'red');
+                    calcAndRender(null, 'green');
+                    calcAndRender(null, 'blue');
+
+                    renderMini();
                     return;
                 }
 
@@ -341,9 +385,29 @@
             }
 
             var switchColor = (color) => {
-                document.getElementById(`grid-${COLOR}`).style['display'] = 'none';
-                COLOR = color;
-                document.getElementById(`grid-${COLOR}`).style['display'] = 'table';
+                if (MINI) {
+                    COLOR = color;
+                    renderMini();
+                } else {
+                    document.getElementById(`grid-${COLOR}`).style['display'] = 'none';
+                    COLOR = color;
+                    document.getElementById(`grid-${COLOR}`).style['display'] = 'table';
+                }
+            }
+
+            var minify = () => {
+                if (MINI) {
+                    document.getElementById('grid-mini').style['display'] = 'none';
+                    document.getElementById(`grid-${COLOR}`).style['display'] = 'table';
+                    document.getElementById('collapse').innerText = 'Collapse';
+                    MINI = false;
+                } else {
+                    document.getElementById(`grid-${COLOR}`).style['display'] = 'none';
+                    document.getElementById('grid-mini').style['display'] = 'table';
+                    document.getElementById('collapse').innerText = 'Expand';
+                    MINI = true;
+                    renderMini();
+                }
             }
 
         </script>
