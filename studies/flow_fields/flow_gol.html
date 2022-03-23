@@ -1,0 +1,111 @@
+<html>
+  <head>
+    <title>Game of Life</title>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.4.1/lib/p5.js"></script>
+    <script src="./lib/flow.js"></script>
+    <script src="./lib/gol.js"></script>
+  </head>
+
+  <body>
+    <main></main>
+    <script>
+      let angles = [];
+      let matrix = [];
+      let startPoints = [];
+      const SIZE = 1000;
+      const RESOLUTION = 0.05;
+      const GRID_SIZE = 2 * SIZE * RESOLUTION;
+      const STEP_LENGTH = 10;
+      const SIM_DEPTH = 2;
+      const SIM_TICKS = 100;
+      const SEED_DEPTH = 2;
+      function setup() {
+        createCanvas(SIZE, SIZE);
+        frameRate(5);
+        background("black");
+        angles = initAngles(GRID_SIZE);
+        matrix = initMatrix(SIM_DEPTH, SEED_DEPTH, GRID_SIZE);
+
+        for (let z = 0; z < 50; z++) {
+          x = Math.floor(Math.random() * SIZE);
+          y = Math.floor(Math.random() * SIZE);
+          startPoints.push([x, y]);
+        }
+      }
+
+      function draw() {
+        clear();
+        const MIN = Math.floor(GRID_SIZE / 4);
+        const MAX = GRID_SIZE - MIN;
+
+        // triangle grid
+        //drawField(angles, GRID_SIZE, RESOLUTION);
+
+        // let's draw a curve
+        for (let p of startPoints) {
+          drawBoxCurve(angles, p[0], p[1], STEP_LENGTH, GRID_SIZE, RESOLUTION);
+        }
+
+        for (const dir in matrix) {
+          const direction = dir === "0" ? -1 : 1;
+          for (let r in matrix[dir]) {
+            for (let c in matrix[dir][r]) {
+              if (!matrix[dir][r][c]) continue;
+              r = parseInt(r);
+              c = parseInt(c);
+              // set center point angle
+              angles[r][c] += direction * 0.02;
+
+              const rm1 = r === 0 ? GRID_SIZE - 1 : r - 1;
+              const rp1 = r === GRID_SIZE - 1 ? 0 : r + 1;
+              const rm2 = rm1 === 0 ? GRID_SIZE - 1 : rm1 - 1;
+              const rp2 = rp1 === GRID_SIZE - 1 ? 0 : rp1 + 1;
+              const cm1 = c === 0 ? GRID_SIZE - 1 : c - 1;
+              const cp1 = c === GRID_SIZE - 1 ? 0 : c + 1;
+              const cm2 = cm1 === 0 ? GRID_SIZE - 1 : cm1 - 1;
+              const cp2 = cp1 === GRID_SIZE - 1 ? 0 : cp1 + 1;
+
+              // set first ring angles
+              angles[rm1][cm1] += direction * 0.01;
+              angles[rm1][c] += direction * 0.01;
+              angles[rm1][cp1] += direction * 0.01;
+              angles[r][cm1] += direction * 0.01;
+              angles[r][cp1] += direction * 0.01;
+              angles[r][cm1] += direction * 0.01;
+              angles[r][c] += direction * 0.01;
+              angles[r][cp1] += direction * 0.01;
+
+              // set second ring angles
+              angles[rm2][cm2] += direction * 0.01;
+              angles[rm2][cm1] += direction * 0.01;
+              angles[rm2][c] += direction * 0.01;
+              angles[rm2][cp1] += direction * 0.01;
+              angles[rm2][cp2] += direction * 0.01;
+              angles[rm1][cm2] += direction * 0.01;
+              angles[rm1][cm1] += direction * 0.01;
+              angles[rm1][c] += direction * 0.01;
+              angles[rm1][cp1] += direction * 0.01;
+              angles[rm1][cp2] += direction * 0.01;
+              angles[r][cm2] += direction * 0.01;
+              angles[r][cm1] += direction * 0.01;
+              angles[r][cp1] += direction * 0.01;
+              angles[r][cp2] += direction * 0.01;
+              angles[rp2][cm2] += direction * 0.01;
+              angles[rp2][cm1] += direction * 0.01;
+              angles[rp2][c] += direction * 0.01;
+              angles[rp2][cp1] += direction * 0.01;
+              angles[rp2][cp2] += direction * 0.01;
+              angles[rp2][cm2] += direction * 0.01;
+              angles[rp2][cm1] += direction * 0.01;
+              angles[rp2][c] += direction * 0.01;
+              angles[rp2][cp1] += direction * 0.01;
+              angles[rp2][cp2] += direction * 0.01;
+            }
+          }
+        }
+
+        matrix = tickMatrix(matrix, SIM_DEPTH, GRID_SIZE);
+      }
+    </script>
+  </body>
+</html>

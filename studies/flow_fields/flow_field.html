@@ -2,12 +2,13 @@
   <head>
     <title>Game of Life</title>
     <script src="https://cdn.jsdelivr.net/npm/p5@1.4.1/lib/p5.js"></script>
+    <script src="./lib/flow.js"></script>
   </head>
 
   <body>
     <main></main>
     <script>
-      const angles = [];
+      let angles = [];
       const SIZE = 500;
       const RESOLUTION = 0.05;
       const GRID_SIZE = 2 * SIZE * RESOLUTION;
@@ -15,12 +16,7 @@
         createCanvas(SIZE, SIZE);
         background("black");
 
-        for (let i = 0; i < GRID_SIZE; i++) {
-          angles.push([]);
-          for (let j = 0; j < GRID_SIZE; j++) {
-            angles[i].push((1.5 + j / GRID_SIZE) * 2 * PI);
-          }
-        }
+        angles = initAngles(GRID_SIZE);
       }
 
       function draw() {

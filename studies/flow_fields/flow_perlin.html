@@ -9,7 +9,7 @@
     <main></main>
     <script>
       let angles = [];
-      const SIZE = 1000;
+      const SIZE = 500;
       const RESOLUTION = 0.05;
       const GRID_SIZE = 2 * SIZE * RESOLUTION;
       const STEP_LENGTH = 1;
@@ -25,12 +25,12 @@
         const MAX = GRID_SIZE - MIN;
 
         // triangle grid
-        //drawField(angles, GRID_SIZE, RESOLUTION);
+        // drawField(angles, GRID_SIZE, RESOLUTION);
 
         // let's draw a curve
-        for (let z = 0; z < 1000; z++) {
-          x = Math.floor(Math.random() * SIZE);
-          y = Math.floor(Math.random() * SIZE);
+        for (let z = 0; z < 100; z++) {
+          x = Math.floor(Math.random() * 500);
+          y = Math.floor(Math.random() * 500);
           drawCurve(angles, x, y, STEP_LENGTH, GRID_SIZE, RESOLUTION);
         }
       }
