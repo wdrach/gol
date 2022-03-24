@@ -11,8 +11,8 @@ function initAngles(GRID_SIZE) {
 }
 
 function drawField(angles, GRID_SIZE, RESOLUTION) {
-  const MIN = Math.floor(GRID_SIZE / 4);
-  const MAX = GRID_SIZE - MIN;
+  const MIN = 0;
+  const MAX = GRID_SIZE;
 
   for (let i = MIN; i < MAX; i++) {
     for (let j = MIN; j < MAX; j++) {
@@ -23,7 +23,7 @@ function drawField(angles, GRID_SIZE, RESOLUTION) {
       push();
       translate(x, y);
       rotate(angle);
-      fill("#E8BFFB");
+      fill("#E8BFFB50");
       noStroke();
       triangle(0, -10, 4, 4, -4, 4);
       pop();
@@ -31,17 +31,18 @@ function drawField(angles, GRID_SIZE, RESOLUTION) {
   }
 }
 
-function drawCurve(angles, x, y, STEP_LENGTH, GRID_SIZE, RESOLUTION) {
+function drawCurve(angles, x, y, STEP_LENGTH, GRID_SIZE, RESOLUTION, width) {
   const MIN = Math.floor(GRID_SIZE / 4);
+  if (!width) width = 2;
 
   beginShape();
   noFill();
-  strokeWeight(2);
+  strokeWeight(width);
   stroke(
     color(`hsb(270, ${(100 * (y - 50)) / (GRID_SIZE / RESOLUTION / 2)}%, 59%)`)
   );
   curveVertex(x, y);
-  for (let step = 0; step < 500; step++) {
+  for (let step = 0; step < 5000; step++) {
     // find our place in our angles grid
     const angleX = Math.round(x * RESOLUTION) + MIN;
     const angleY = Math.round(y * RESOLUTION) + MIN;
@@ -49,9 +50,6 @@ function drawCurve(angles, x, y, STEP_LENGTH, GRID_SIZE, RESOLUTION) {
     if (angleX >= GRID_SIZE || angleY >= GRID_SIZE || angleX < 0 || angleY < 0)
       break;
     const angle = angles[angleX][angleY];
-    if (step === 0) {
-      console.log(angle);
-    }
 
     // move via angle
     x += STEP_LENGTH * Math.sin(angle);
@@ -66,7 +64,7 @@ function drawBoxCurve(angles, x, y, STEP_LENGTH, GRID_SIZE, RESOLUTION) {
   const MIN = Math.floor(GRID_SIZE / 4);
 
   const yp = y / (GRID_SIZE / RESOLUTION / 2);
-  for (let step = 0; step < 200; step++) {
+  for (let step = 0; step < 5000; step++) {
     // find our place in our angles grid
     const angleX = Math.round(x * RESOLUTION) + MIN;
     const angleY = Math.round(y * RESOLUTION) + MIN;
@@ -86,5 +84,83 @@ function drawBoxCurve(angles, x, y, STEP_LENGTH, GRID_SIZE, RESOLUTION) {
     noStroke();
     square(0, 0, STEP_LENGTH, STEP_LENGTH / 4);
     pop();
+  }
+}
+
+function drawPenCurve(angles, x, y, STEP_LENGTH, GRID_SIZE, RESOLUTION) {
+  const MIN = Math.floor(GRID_SIZE / 4);
+
+  for (let step = 0; step < 5000; step++) {
+    const full = GRID_SIZE / RESOLUTION / 2;
+    const n1 = noise(x, y);
+    const n2 = noise(x + full, y + full);
+    const n3 = noise(x + 2 * full, y + 2 * full);
+
+    const currentStep = n1 * STEP_LENGTH;
+
+    // find our place in our angles grid
+    const angleX = Math.round(x * RESOLUTION) + MIN;
+    const angleY = Math.round(y * RESOLUTION) + MIN;
+
+    if (angleX >= GRID_SIZE || angleY >= GRID_SIZE || angleX < 0 || angleY < 0)
+      break;
+    const angle = angles[angleX][angleY];
+
+    // move via angle
+    x += currentStep * Math.sin(angle);
+    y -= currentStep * Math.cos(angle);
+
+    push();
+    translate(x, y);
+    fill("black");
+    rotate(angle + n2 - 0.5);
+    noStroke();
+    square(-currentStep / 2 + n3, -currentStep / 2, currentStep + 1);
+    pop();
+  }
+}
+
+function packCurve(angles, MAX_STEP, GRID_SIZE, RESOLUTION) {
+  let width = 20;
+  let buffer = 10;
+  const FULL = GRID_SIZE / RESOLUTION;
+
+  const circles = [];
+  for (let i = 0; i < 1000; i++) {
+    let x = Math.random() * FULL;
+    let y = Math.random() * FULL;
+
+    beginShape();
+    stroke(color(`hsb(270, ${Math.floor(Math.random() * 100)}%, 59%)`));
+    strokeWeight(width);
+    noFill();
+
+    const pathCircles = [];
+    while (true) {
+      // find our place in our angles grid
+      const angleX = Math.round(x * RESOLUTION);
+      const angleY = Math.round(y * RESOLUTION);
+
+      if (
+        angleX >= GRID_SIZE ||
+        angleY >= GRID_SIZE ||
+        angleX < 0 ||
+        angleY < 0 ||
+        circles.some(
+          (circle) =>
+            dist(x, y, circle[0], circle[1]) <= (circle[2] + width + buffer) / 2
+        )
+      )
+        break;
+      const angle = angles[angleX][angleY];
+      curveVertex(x, y);
+      pathCircles.push([x, y, width]);
+
+      // move via angle
+      x += MAX_STEP * Math.sin(angle);
+      y -= MAX_STEP * Math.cos(angle);
+    }
+    circles.push(...pathCircles);
+    endShape();
   }
 }

@@ -11,7 +11,7 @@
       let angles = [];
       const SIZE = 1000;
       const RESOLUTION = 0.05;
-      const GRID_SIZE = 2 * SIZE * RESOLUTION;
+      const GRID_SIZE = SIZE * RESOLUTION;
       const STEP_LENGTH = 10;
       function setup() {
         createCanvas(SIZE, SIZE);
@@ -28,11 +28,7 @@
         //drawField(angles, GRID_SIZE, RESOLUTION);
 
         // let's draw a curve
-        for (let z = 0; z < 100; z++) {
-          x = Math.floor(Math.random() * SIZE);
-          y = Math.floor(Math.random() * SIZE);
-          drawBoxCurve(angles, x, y, STEP_LENGTH, GRID_SIZE, RESOLUTION);
-        }
+        packCurve(angles, STEP_LENGTH, GRID_SIZE, RESOLUTION);
       }
     </script>
   </body>

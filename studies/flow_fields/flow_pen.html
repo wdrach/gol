@@ -12,11 +12,11 @@
       const SIZE = 1000;
       const RESOLUTION = 0.05;
       const GRID_SIZE = 2 * SIZE * RESOLUTION;
-      const STEP_LENGTH = 10;
+      const STEP_LENGTH = 5;
       function setup() {
         createCanvas(SIZE, SIZE);
         noLoop();
-        background("black");
+        background("#E9E3D6");
         angles = initAngles(GRID_SIZE);
       }
 
@@ -31,7 +31,7 @@
         for (let z = 0; z < 100; z++) {
           x = Math.floor(Math.random() * SIZE);
           y = Math.floor(Math.random() * SIZE);
-          drawBoxCurve(angles, x, y, STEP_LENGTH, GRID_SIZE, RESOLUTION);
+          drawPenCurve(angles, x, y, STEP_LENGTH, GRID_SIZE, RESOLUTION);
         }
       }
     </script>
