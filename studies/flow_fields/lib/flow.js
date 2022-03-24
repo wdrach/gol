@@ -3,7 +3,7 @@ function initAngles(GRID_SIZE) {
   for (let i = 0; i < GRID_SIZE; i++) {
     angles.push([]);
     for (let j = 0; j < GRID_SIZE; j++) {
-      angles[i].push(noise(i * 0.05, j * 0.05) * 2 * PI);
+      angles[i].push(noise(i * 0.01, j * 0.01) * 2 * PI);
     }
   }
 
@@ -121,98 +121,31 @@ function drawPenCurve(angles, x, y, STEP_LENGTH, GRID_SIZE, RESOLUTION) {
 }
 
 function packCurve(angles, MAX_STEP, GRID_SIZE, RESOLUTION) {
-  let width = 20;
+  const w = MAX_STEP;
   let buffer = 10;
+  let margin = 3;
   const FULL = GRID_SIZE / RESOLUTION;
 
   const circles = [];
   for (let i = 0; i < 1000; i++) {
     let x = Math.random() * FULL;
     let y = Math.random() * FULL;
-
-    beginShape();
-    stroke(color(`hsb(270, ${Math.floor(Math.random() * 100)}%, 59%)`));
-    strokeWeight(width);
-    noFill();
-
+    const width = Math.random() * w + 10;
     const pathCircles = [];
+    const vertices = [];
+
     while (true) {
       // find our place in our angles grid
       const angleX = Math.round(x * RESOLUTION);
       const angleY = Math.round(y * RESOLUTION);
-
-      if (
-        angleX >= GRID_SIZE ||
-        angleY >= GRID_SIZE ||
-        angleX < 0 ||
-        angleY < 0 ||
-        circles.some(
-          (circle) =>
-            dist(x, y, circle[0], circle[1]) <= (circle[2] + width + buffer) / 2
-        )
-      )
-        break;
-      const angle = angles[angleX][angleY];
-      curveVertex(x, y);
-      pathCircles.push([x, y, width]);
-
-      // move via angle
-      x += MAX_STEP * Math.sin(angle);
-      y -= MAX_STEP * Math.cos(angle);
-    }
-    circles.push(...pathCircles);
-    endShape();
-  }
-}
-
-function placeBox(x, y, angle, size, c) {
-  push();
-  translate(x, y);
-  beginShape();
-  strokeWeight(1);
-  fill(c);
-  stroke("black");
-  const ox = Math.sin(angle) * size;
-  const oy = -Math.cos(angle) * size;
-  vertex(-ox + size / 2, -oy + size / 2);
-  vertex(-ox - size / 2, -oy - size / 2);
-  vertex(ox - size / 2, oy - size / 2);
-  vertex(ox + size / 2, oy + size / 2);
-  endShape();
-  pop();
-}
-
-function packPenCurve(angles, MAX_STEP, GRID_SIZE, RESOLUTION) {
-  const w = 40;
-  let buffer = 5;
-  const FULL = GRID_SIZE / RESOLUTION;
-
-  const circles = [];
-  for (let i = 0; i < 1000; i++) {
-    let x = Math.random() * FULL;
-    let y = Math.random() * FULL;
-    let width = Math.random() * w + 10;
-
-    const colors = ["#FFFFFF", "#00A7E1", "#00171F", "#003459", "#007EA7"];
-    const c = color(colors[Math.floor(Math.random() * 5)]);
-
-    const pathCircles = [];
-    while (true) {
-      const nx = x * 0.01;
-      const ny = y * 0.01;
-      const n1 = noise(nx, ny);
-
+      const n1 = noise(x * 0.01, y * 0.01);
       const currentStep = n1 * width;
 
-      // find our place in our angles grid
-      const angleX = Math.round(x * RESOLUTION);
-      const angleY = Math.round(y * RESOLUTION);
-
       if (
-        angleX >= GRID_SIZE ||
-        angleY >= GRID_SIZE ||
-        angleX < 0 ||
-        angleY < 0 ||
+        angleX >= GRID_SIZE - margin ||
+        angleY >= GRID_SIZE - margin ||
+        angleX < margin ||
+        angleY < margin ||
         circles.some(
           (circle) =>
             dist(x, y, circle[0], circle[1]) <= (circle[2] + width + buffer) / 2
@@ -220,13 +153,34 @@ function packPenCurve(angles, MAX_STEP, GRID_SIZE, RESOLUTION) {
       )
         break;
       const angle = angles[angleX][angleY];
-      placeBox(x, y, angle, currentStep, c);
+      const ox = Math.sin(angle) * currentStep;
+      const oy = -Math.cos(angle) * currentStep;
+
+      vertices.push([x, y, ox, oy]);
       pathCircles.push([x, y, width]);
 
       // move via angle
-      x += currentStep * Math.sin(angle);
-      y -= currentStep * Math.cos(angle);
+      x += ox;
+      y -= oy;
     }
     circles.push(...pathCircles);
+
+    beginShape();
+    fill(color(`hsb(270, ${Math.floor(Math.random() * 100)}%, 59%)`));
+    noStroke();
+
+    for (const n in vertices) {
+      const x = vertices[n][0] + vertices[n][3] / 2;
+      const y = vertices[n][1] + vertices[n][2] / 2;
+      curveVertex(x, y);
+    }
+
+    for (const n in vertices.reverse()) {
+      const x = vertices[n][0] - vertices[n][3] / 2;
+      const y = vertices[n][1] - vertices[n][2] / 2;
+      curveVertex(x, y);
+    }
+
+    endShape(CLOSE);
   }
 }
