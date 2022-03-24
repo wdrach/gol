@@ -1,0 +1,133 @@
+<html>
+  <head>
+    <title>Generative Collection 1</title>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.4.1/lib/p5.js"></script>
+  </head>
+
+  <body>
+    <main></main>
+    <script>
+      const colorSchemes = [
+        ["#F7F7FF", "#C49991", "#279AF1", "#60656F", "#131112"],
+        ["#2B303A", "#92DCE5", "#EEE5E9", "#7C7C7C", "#D64933"],
+        ["#E0DFD5", "#313638", "#E8E9EB", "#E4B363", "#EF6461"],
+        ["#D8DCFF", "#AEADF0", "#334E58", "#33261D", "#F87060"],
+        ["#0D2C54", "#7FB800", "#00A6ED", "#FFB400", "#F6511D"],
+        ["#1F363D", "#40798C", "#70A9A1", "#9EC1A3", "#CFE0C3"],
+        ["#0A0903", "#FF0000", "#FF8200", "#FFC100", "#FFEAAE"],
+        ["#B48B7D", "#FFF9A5", "#DFEFCA", "#CCDDD3", "#AFC2D5"],
+        ["#2E1F27", "#854D27", "#DD7230", "#F4C95D", "#E7E393"],
+        ["#F4F4F8", "#E6E6EA", "#009FB7", "#FED766", "#FE4A49"],
+        ["#DCE0D9", "#31081F", "#6B0F1A", "#595959", "#808F85"],
+        ["#040F0F", "#248232", "#2BA84A", "#2D3A3A", "#FCFFFC"],
+        ["#FFEAD0", "#F76F8E", "#96616B", "#37505C", "#113537"],
+        ["#1F2041", "#4B3F72", "#FFC857", "#119DA4", "#19647E"],
+        ["#F4F1BB", "#E6EBE0", "#36C9C6", "#9BC1BC", "#ED6A5A"],
+        ["#100B00", "#85CB33", "#EFFFC8", "#A5CBC3", "#3B341F"],
+      ];
+
+      const hash =
+        "0x" +
+        [...Array(64)]
+          .map(() => Math.floor(Math.random() * 16).toString(16))
+          .join("");
+
+      const SIZE = 1000;
+      const RESOLUTION = 0.05;
+      const GRID_SIZE = SIZE * RESOLUTION;
+      const STEP_LENGTH = parseInt(hash.charAt(3), 16) * 2 + 10;
+      const NOISE_SEED = parseInt(hash.substring(4, 20), 16);
+      const RANDOM_SEED = parseInt(hash.substring(21, 36), 16);
+      const BUFFER = 5 + parseInt(hash.charAt(37), 16);
+      const MARGIN = 2 + parseInt(hash.charAt(38), 16) / 2;
+      const COLOR_SCHEME = colorSchemes[parseInt(hash.charAt(39), 16)];
+      const BACKGROUND = COLOR_SCHEME[0];
+      const NOISE_MODIFIER = (0.01 * parseInt(hash.charAt(40), 16)) / 3;
+      const WOBBLE = 0.01;
+
+      let angles = [];
+      function setup() {
+        createCanvas(SIZE, SIZE);
+        noLoop();
+        background(BACKGROUND);
+        noiseSeed(NOISE_SEED);
+        for (let i = 0; i < GRID_SIZE; i++) {
+          angles.push([]);
+          for (let j = 0; j < GRID_SIZE; j++) {
+            angles[i].push(
+              noise(i * NOISE_MODIFIER, j * NOISE_MODIFIER) * 2 * PI
+            );
+          }
+        }
+      }
+
+      function draw() {
+        const w = STEP_LENGTH;
+        const FULL = GRID_SIZE / RESOLUTION;
+
+        randomSeed(RANDOM_SEED);
+
+        const circles = [];
+        for (let i = 0; i < random(100, 3000); i++) {
+          let x = random(FULL);
+          let y = random(FULL);
+          const width = random(w) + 20;
+          const pathCircles = [];
+          const vertices = [];
+
+          while (true) {
+            // find our place in our angles grid
+            const angleX = Math.round(x * RESOLUTION);
+            const angleY = Math.round(y * RESOLUTION);
+            const n1 = noise(x * WOBBLE, y * WOBBLE);
+            const currentStep = n1 * width;
+
+            if (
+              angleX >= GRID_SIZE - MARGIN ||
+              angleY >= GRID_SIZE - MARGIN ||
+              angleX < MARGIN ||
+              angleY < MARGIN ||
+              circles.some(
+                (circle) =>
+                  dist(x, y, circle[0], circle[1]) <=
+                  (circle[2] + width + BUFFER) / 2
+              )
+            )
+              break;
+            const angle = angles[angleX][angleY];
+            const ox = Math.sin(angle) * currentStep;
+            const oy = -Math.cos(angle) * currentStep;
+
+            vertices.push([x, y, ox, oy]);
+            pathCircles.push([x, y, width]);
+
+            // move via angle
+            x += ox;
+            y -= oy;
+          }
+          circles.push(...pathCircles);
+
+          if (vertices.length) {
+            beginShape();
+            fill(COLOR_SCHEME[Math.floor(random(4) + 1)]);
+            noStroke();
+
+            for (const n in vertices) {
+              const x = vertices[n][0] + vertices[n][3] / 2;
+              const y = vertices[n][1] + vertices[n][2] / 2;
+              curveVertex(x, y);
+            }
+
+            for (const n in vertices.reverse()) {
+              const x = vertices[n][0] - vertices[n][3] / 2;
+              const y = vertices[n][1] - vertices[n][2] / 2;
+              curveVertex(x, y);
+            }
+
+            endShape(CLOSE);
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

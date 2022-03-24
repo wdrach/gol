@@ -1,4 +1,5 @@
 function initAngles(GRID_SIZE) {
+  noiseSeed(99);
   const angles = [];
   for (let i = 0; i < GRID_SIZE; i++) {
     angles.push([]);
@@ -126,10 +127,12 @@ function packCurve(angles, MAX_STEP, GRID_SIZE, RESOLUTION) {
   let margin = 3;
   const FULL = GRID_SIZE / RESOLUTION;
 
+  randomSeed(99);
+
   const circles = [];
   for (let i = 0; i < 1000; i++) {
-    let x = Math.random() * FULL;
-    let y = Math.random() * FULL;
+    let x = random(FULL);
+    let y = random(FULL);
     const width = Math.random() * w + 10;
     const pathCircles = [];
     const vertices = [];
