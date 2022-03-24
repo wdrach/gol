@@ -16,7 +16,7 @@
       function setup() {
         createCanvas(SIZE, SIZE);
         noLoop();
-        background("black");
+        background("#E9E3D6");
         angles = initAngles(GRID_SIZE);
       }
 
@@ -28,7 +28,7 @@
         //drawField(angles, GRID_SIZE, RESOLUTION);
 
         // let's draw a curve
-        packCurve(angles, STEP_LENGTH, GRID_SIZE, RESOLUTION);
+        packPenCurve(angles, STEP_LENGTH, GRID_SIZE, RESOLUTION);
       }
     </script>
   </body>

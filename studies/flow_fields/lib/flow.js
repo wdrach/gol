@@ -164,3 +164,69 @@ function packCurve(angles, MAX_STEP, GRID_SIZE, RESOLUTION) {
     endShape();
   }
 }
+
+function placeBox(x, y, angle, size, c) {
+  push();
+  translate(x, y);
+  beginShape();
+  strokeWeight(1);
+  fill(c);
+  stroke("black");
+  const ox = Math.sin(angle) * size;
+  const oy = -Math.cos(angle) * size;
+  vertex(-ox + size / 2, -oy + size / 2);
+  vertex(-ox - size / 2, -oy - size / 2);
+  vertex(ox - size / 2, oy - size / 2);
+  vertex(ox + size / 2, oy + size / 2);
+  endShape();
+  pop();
+}
+
+function packPenCurve(angles, MAX_STEP, GRID_SIZE, RESOLUTION) {
+  const w = 40;
+  let buffer = 5;
+  const FULL = GRID_SIZE / RESOLUTION;
+
+  const circles = [];
+  for (let i = 0; i < 1000; i++) {
+    let x = Math.random() * FULL;
+    let y = Math.random() * FULL;
+    let width = Math.random() * w + 10;
+
+    const colors = ["#FFFFFF", "#00A7E1", "#00171F", "#003459", "#007EA7"];
+    const c = color(colors[Math.floor(Math.random() * 5)]);
+
+    const pathCircles = [];
+    while (true) {
+      const nx = x * 0.01;
+      const ny = y * 0.01;
+      const n1 = noise(nx, ny);
+
+      const currentStep = n1 * width;
+
+      // find our place in our angles grid
+      const angleX = Math.round(x * RESOLUTION);
+      const angleY = Math.round(y * RESOLUTION);
+
+      if (
+        angleX >= GRID_SIZE ||
+        angleY >= GRID_SIZE ||
+        angleX < 0 ||
+        angleY < 0 ||
+        circles.some(
+          (circle) =>
+            dist(x, y, circle[0], circle[1]) <= (circle[2] + width + buffer) / 2
+        )
+      )
+        break;
+      const angle = angles[angleX][angleY];
+      placeBox(x, y, angle, currentStep, c);
+      pathCircles.push([x, y, width]);
+
+      // move via angle
+      x += currentStep * Math.sin(angle);
+      y -= currentStep * Math.cos(angle);
+    }
+    circles.push(...pathCircles);
+  }
+}
